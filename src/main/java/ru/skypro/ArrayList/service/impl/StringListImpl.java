@@ -1,128 +1,124 @@
 package ru.skypro.ArrayList.service.impl;
 
+import ru.skypro.ArrayList.exception.ElementNotFoundException;
+import ru.skypro.ArrayList.exception.InvalidIndexException;
+import ru.skypro.ArrayList.exception.NullItemException;
+import ru.skypro.ArrayList.exception.StorageIsFullException;
 import ru.skypro.ArrayList.service.StringList;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 
 public class StringListImpl implements StringList {
-    ArrayList<String> ArrayList = new ArrayList<>();
+    private final String[] storage;
     private int index ;
     private String item;
-    public static final int size = 9;
+    public int size;
 
-    public StringListImpl(String[] arrayList, int index, String item) {
-        this.ArrayList = ArrayList;
-        this.index = index;
-        this.item = item;
+    public StringListImpl() {
+        storage = new String[10];
+    }
+
+    public StringListImpl(int initSize) {
+        storage = new String[initSize];
     }
 
     @Override
     public String add(String item) {
-        ArrayList.add(item);
+        validateItem(item);
+        validateSize();
+        storage[size++] = item;
         return item;
     }
 
     @Override
     public String add(int index, String item) {
-        if (index > 9) {
-            throw new RuntimeException("Выход за границу массива") ;
+        validateSize();
+        validateItem(item);
+        validateIndex(index);
+        if (index == size) {
+            storage [size++] = item;
+            return item;
         }
-        else {
-            ArrayList.add(index,item);
-        }
+        System.arraycopy(storage, index, storage, index +1, size - index);
+        storage[index] = item;
+        size++;
         return item;
     }
 
     @Override
     public String set(int index, String item) {
-        if (index > 9) {
-            throw new RuntimeException("Выход за границу массива") ;
-        }
-        else {
-            ArrayList.set(index, item);
-            return item;
-        }
+        validateIndex (index);
+        validateItem (item);
+        storage[index] = item;
+        return item;
     }
 
     @Override
     public String remove(String item) {
-        for (int i = 0; i <= ArrayList.size();i++) {
-            if (item.equals(ArrayList.get(i))) {
-                ArrayList.remove(item);
-                return item;
-            }
+        validateItem(item);
+
+        int index = indexOf(item);
+        if (index == -1) {
+            throw  new ElementNotFoundException();
         }
-        throw new RuntimeException("No such element");
+
+        if (index != size) {
+            System.arraycopy(storage, index + 1, storage, index, size - index);
+        }
+
+        size--;
+        return item;
     }
 
     @Override
     public String remove(int index) {
-        for (int i = 0; i <= ArrayList.size();i++) {
-            if (ArrayList.get(index) == ArrayList.get(i)) {
-                ArrayList.remove(index);
-                return ArrayList.get(index);
-            }
+        validateIndex(index);
+
+        String item = storage[index];
+
+        if (index != size) {
+               System.arraycopy(storage, index + 1, storage, index, size - index);
         }
-        throw new RuntimeException("No such element");
+
+        size--;
+        return item;
     }
 
     @Override
     public boolean contains(String item) {
-        return indexOf(item) >= 0;
+        return indexOf(item) != -1;
     }
 
     @Override
     public int indexOf(String item) {
-        int result = -1;
-        for (int i = 0; i < index; i++) {
-            if (item == ArrayList.get(i)) {
-                result = i;
-                break;
+        for (int i = 0; i < size; i++) {
+            if (storage[i].equals(item)) {
+                return i;
             }
         }
-        return result;
+        return -1;
     }
 
     @Override
     public int lastIndexOf(String item) {
-        int lastIndex = -1;
-        if (item == null) {
-            for (int i = 0; i < size; i++) {
-                if (ArrayList.get(i) == null) {
-                    lastIndex = i;
-                }
-            }
-            return lastIndex;
-        } else {
-            for (int i = 0; i < size; i++) {
-                if (item.equals(ArrayList.get(i))) {
-                    lastIndex = i;
-                }
+        for (int i = size - 1; i > 0; i--) {
+            if (storage[i].equals(item)) {
+                return i;
             }
         }
-        return lastIndex;
+        return -1;
     }
 
     @Override
     public String get(int index) {
-        if ((index < size) && (index >= 0)) {
-            return ArrayList.get(index);
-        }
-        return null;
+        validateIndex (index);
+        return storage[index];
     }
 
     @Override
     public boolean equals(StringList otherList) {
-        if (otherList == null) {
-            throw new RuntimeException("Empty list");
-        }else{
-            if(ArrayList.equals(otherList)) {
-                return true;
-            } else {
-                return false;
-            }
-        }
+        return Arrays.equals (this.toArray(), otherList.toArray());
     }
 
     @Override
@@ -136,30 +132,35 @@ public class StringListImpl implements StringList {
     }
 
     @Override
-    public boolean clear(Collection c) {
-        if (c == null) {
-            return false;
-        }
-        if ((c.size() == 0) || (size == 0)) {
-            return false;
-        }
-        boolean modyfied = false;
-        int i = 0;
-        while (i < size) {
-            if (c.contains(ArrayList)) {
-                modyfied = true;
-            } else {
-                i++;
-            }
-        }
-        return modyfied;
+    public void clear() {
+        size = 0;
+    }
 
+    @Override
+    public void clear(Collection c) {
+        size = 0;
     }
 
     @Override
     public String[] toArray() {
-        String[] newArray = new String[size];
-        System.arraycopy(ArrayList, 0, newArray, 0, size);
-        return newArray;
+        return Arrays.copyOf(storage, size);
+    }
+
+    private void validateItem(String item) {
+        if (item == null) {
+            throw new NullItemException();
+        }
+    }
+
+    private void validateSize() {
+        if (size == storage.length) {
+            throw new StorageIsFullException();
+        }
+    }
+
+    private void validateIndex (int index) {
+        if (index < 0 || index > size) {
+            throw new InvalidIndexException();
+        }
     }
 }
