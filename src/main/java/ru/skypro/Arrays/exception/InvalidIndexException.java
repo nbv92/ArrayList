@@ -1,4 +1,4 @@
-package ru.skypro.ArrayList.exception;
+package ru.skypro.Arrays.exception;
 
 public class InvalidIndexException extends RuntimeException{
     public InvalidIndexException() {}

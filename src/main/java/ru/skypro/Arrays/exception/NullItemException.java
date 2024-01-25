@@ -1,4 +1,4 @@
-package ru.skypro.ArrayList.exception;
+package ru.skypro.Arrays.exception;
 
 public class NullItemException extends RuntimeException {
     public NullItemException() {
