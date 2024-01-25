@@ -15,6 +15,9 @@ public interface StringList {
     boolean equals(StringList otherList);
     int size();
     boolean isEmpty();
-    boolean clear(Collection c);
+    void clear();
+
+    void clear(Collection c);
+
     String[] toArray();
 }
